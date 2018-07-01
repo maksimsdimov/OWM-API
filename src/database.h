@@ -48,5 +48,6 @@ public:
 
   std::string forecast(int);
   float temperature(int);
+  
 };
 

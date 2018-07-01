@@ -300,7 +300,6 @@ int database::lastUpdate(int index) {
 // }
 
 
-
 //add size check!!!
 int database::findIndex(int ID) {
   for(size_t i = 0; i < this->arr.size(); i++) {
