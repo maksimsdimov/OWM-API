@@ -24,12 +24,15 @@ void idHandler(const Pistache::Http::Request &request,
   if(index != -1) {
 
     if(getTime() > cache.lastUpdate(index) + 600) {
-      std::cout << "DATA IS OLD\n";
-      //download updated data
-      cache.fetchWeather(ID, "a97770a9a4d33fcc30eb629a35c3e261"); 
-      //TODO Implement  proper API key
+      std::clog << "Cached data is old\n";
+      //TODO Implement proper API key
+      cache.updateEntry(ID
+              ,cache.fetchWeather(ID, "a97770a9a4d33fcc30eb629a35c3e261")
+              , ""
+              , getTime());
     }
-    responseString += cache.forecast(index)
+    responseString += "Forecast: "
+                    + cache.forecast(index)
                     + " , with a temperature of "
                     + std::to_string(cache.temperature(index))
                     + "\n";
@@ -46,7 +49,6 @@ void idHandler(const Pistache::Http::Request &request,
 
   response.send(code, responseString);
 } 
-
 
 
 int main() {

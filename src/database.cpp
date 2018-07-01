@@ -222,17 +222,20 @@ void database::exportDB() {
 }
 
 
-void database::updateEntry(int ID, float temperature, std::string forecast) {
-  updateInternal(ID, temperature, forecast);
+void database::updateEntry(int ID, float temperature, std::string forecast, int time) {
+  updateInternal(ID, temperature, forecast, time);
   updateExternal(ID, temperature, forecast);
 }
 
+//Implement properly
 void database::updateExternal(int ID, float temperature, std::string forecast) {
-  //TODO
+  this->exportDB();
 }
 
-void database::updateInternal(int ID, float temperature, std::string forecast) {
-  //TODO
+void database::updateInternal(int ID, float temperature, std::string forecast, int time) {
+  this->arr[this->findIndex(ID)].temperature = temperature;
+  this->arr[this->findIndex(ID)].lastUpdate = time;
+  
 }
 
 //api.openweathermap.org/data/2.5/weather?q=Berlin&appid=a97770a9a4d33fcc30eb629a35c3e261
@@ -244,12 +247,11 @@ float database::fetchWeather(int cityID, std::string apiKey) {
       +   std::to_string(cityID)
       +   "&appid="
       +   apiKey;
-
+  std::clog << "Updating";
   httpClient c;
   auto response = c.get("api.openweathermap.org"
                         , url
                         , '{');
-
 
   if(response.code == 200) {
 
@@ -258,9 +260,11 @@ float database::fetchWeather(int cityID, std::string apiKey) {
 
     if(_min != std::string::npos && _max != std::string::npos) {
       std::string temp_min(response.body.substr(_min + 10, 6));
-      std::cout << "temp min: " << temp_min << "\n";
       std::string temp_max(response.body.substr(_max + 10, 6));
-      std::cout << "temp max: " << temp_max << "\n";
+      std::clog << "\rUpdate sucessful\n";
+      return (((std::stof(temp_min) + std::stof(temp_max)) / 2 ) - 273.15);
+    } else {
+      std::cerr << "Temperatures not found in weather update\n";
     }
 
   } else if(response.code == 420) {
@@ -296,7 +300,9 @@ int database::lastUpdate(int index) {
 // }
 
 
-int database::findIndex(int ID) {//add size check!!!
+
+//add size check!!!
+int database::findIndex(int ID) {
   for(size_t i = 0; i < this->arr.size(); i++) {
     if(this->arr[i].ID == ID) {
       return i;

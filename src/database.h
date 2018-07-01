@@ -32,11 +32,9 @@ public:
 
   database();
 
-
-
-  void updateEntry(int, float, std::string);
+  void updateEntry(int, float, std::string, int);
   void updateExternal(int, float, std::string);
-  void updateInternal(int, float, std::string);
+  void updateInternal(int, float, std::string, int);
 
   float fetchWeather(int, std::string);
 
