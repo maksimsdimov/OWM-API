@@ -1,4 +1,5 @@
 #include "database.h"
+#include "apiKey.h"
 
 #include "global.h"
 
@@ -23,9 +24,8 @@ void idHandler(const Pistache::Rest::Request &request,
 
     if(getTime() > cache.lastUpdate(index) + 600) {
       std::clog << "Cached data is old\n";
-      //TODO Implement proper API key
       cache.updateEntry(ID
-              ,cache.fetchWeather(ID, "a97770a9a4d33fcc30eb629a35c3e261")
+              ,cache.fetchWeather(ID, key.get())
               , ""
               , getTime());
     }
@@ -64,9 +64,8 @@ void nameHandler(const Pistache::Rest::Request &request,
 
     if(getTime() > cache.lastUpdate(index) + 600) {
       std::clog << "Cached data is old\n";
-      //TODO Implement proper API key
       cache.updateEntry(ID
-              ,cache.fetchWeather(ID, "a97770a9a4d33fcc30eb629a35c3e261")
+              ,cache.fetchWeather(ID, key.get())
               , ""
               , getTime());
     }
@@ -90,6 +89,9 @@ void nameHandler(const Pistache::Rest::Request &request,
 
 
 int main() {
+
+  if(!key.exists())
+    return 0;
 
   Pistache::Rest::Router test;
   Pistache::Rest::Routes::Get(test, "/id/:id", 

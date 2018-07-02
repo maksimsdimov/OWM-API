@@ -238,9 +238,6 @@ void database::updateInternal(int ID, float temperature, std::string forecast, i
   
 }
 
-//api.openweathermap.org/data/2.5/weather?q=Berlin&appid=a97770a9a4d33fcc30eb629a35c3e261
-//api.openweathermap.org/data/2.5/weather?id=2950159&appid=a97770a9a4d33fcc30eb629a35c3e261
-
 float database::fetchWeather(int cityID, std::string apiKey) {
   std::string url;
   url += "/data/2.5/weather?id="

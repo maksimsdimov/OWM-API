@@ -1,7 +1,7 @@
 #include <vector>
 #include <string>
 
-class database{
+class database {
 private:
   struct city_T {
     int ID;
@@ -39,7 +39,7 @@ public:
   float fetchWeather(int, std::string);
 
   int lastUpdate(int);
-  
+
   int findID(std::string);
   // int findID(std::string, std::string);
 
