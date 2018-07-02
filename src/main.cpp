@@ -9,19 +9,17 @@ using namespace std;
 using namespace Pistache;
 
 
-void idHandler(const Pistache::Http::Request &request,
+void idHandler(const Pistache::Rest::Request &request,
                      Pistache::Http::ResponseWriter response) {
-
-  std::string temp = request.resource();
-  int ID = std::stoi(temp.erase(0, 4));
-
+  int ID = request.param(":id").as<int>();
+  
   std::clog << "Recieved request by ID: " << ID << "\n";
 
   int index = cache.findIndex(ID);
   std::string responseString;
   auto code = Http::Code::I_m_a_teapot;
   
-  if(index != -1) {
+  if(index != -1 && ID) {
 
     if(getTime() > cache.lastUpdate(index) + 600) {
       std::clog << "Cached data is old\n";
@@ -40,22 +38,64 @@ void idHandler(const Pistache::Http::Request &request,
 
   } else {
     responseString += "Couldn't find "
-                    + temp
+                    + std::to_string(ID)
                     + "\n";
     code = Http::Code::Not_Found;
     std::clog << responseString;
   }
 
 
-  response.send(code, responseString);
+  response.send(code, responseString, MIME(Text, Plain));
+} 
+
+void nameHandler(const Pistache::Rest::Request &request,
+                     Pistache::Http::ResponseWriter response) {
+
+  std::string city = request.param(":city").as<std::string>();
+
+  std::clog << "Recieved request by name: " << city << "\n";
+
+  int ID = cache.findID(city);
+  int index = cache.findIndex(ID);
+  std::string responseString;
+  auto code = Http::Code::I_m_a_teapot;
+
+  if(index != -1 && ID) {
+
+    if(getTime() > cache.lastUpdate(index) + 600) {
+      std::clog << "Cached data is old\n";
+      //TODO Implement proper API key
+      cache.updateEntry(ID
+              ,cache.fetchWeather(ID, "a97770a9a4d33fcc30eb629a35c3e261")
+              , ""
+              , getTime());
+    }
+    responseString += "Forecast: "
+                    + cache.forecast(index)
+                    + " , with a temperature of "
+                    + std::to_string(cache.temperature(index))
+                    + "\n";
+    code = Http::Code::Ok;
+
+  } else {
+    responseString += "Couldn't find "
+                    + city
+                    + "\n";
+    code = Http::Code::Not_Found;
+    std::clog << responseString;
+  }
+
+  response.send(code, responseString, MIME(Text, Plain));
 } 
 
 
 int main() {
 
   Pistache::Rest::Router test;
-  Pistache::Rest::Routes::Get(test, "/id/:", 
+  Pistache::Rest::Routes::Get(test, "/id/:id", 
                               Pistache::Rest::Routes::bind(&idHandler));
+  Pistache::Rest::Routes::Get(test, "/city/:city", 
+                             Pistache::Rest::Routes::bind(&nameHandler));
   Pistache::Address addr(Pistache::Ipv4::any(), Pistache::Port(9080));
   auto options = Http::Endpoint::options().threads(1).flags(Tcp::Options::None);
   Pistache::Http::Endpoint server(addr);

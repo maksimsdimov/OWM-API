@@ -279,20 +279,17 @@ int database::lastUpdate(int index) {
   return this->arr[index].lastUpdate;
 }
 
-// int database::find(std::string str) {
-//   return -1;
-// }
 
-// int database::findID(std::string cityName) {
-//   for(size_t i = 0; i < this->arr.size(); i++) {
-//     if(this->arr[i].city == cityName) {
-//       return this->arr[i].ID;
-//       break;
-//     }
-//   }
-//   std::clog << "Couldn't find " << cityName << "\n";
-//   return 0;
-// }
+int database::findID(std::string cityName) {
+  for(size_t i = 0; i < this->arr.size(); i++) {
+    if(this->arr[i].city == cityName) {
+      return this->arr[i].ID;
+      break;
+    }
+  }
+  std::clog << "Couldn't find " << cityName << "\n";
+  return 0;
+}
 
 // int database::findID(std::string cityName, std::string country) {
 //   //TODO

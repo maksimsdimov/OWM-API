@@ -39,15 +39,14 @@ public:
   float fetchWeather(int, std::string);
 
   int lastUpdate(int);
-
-  // int find(std::string);
-  // int findID(std::string);
+  
+  int findID(std::string);
   // int findID(std::string, std::string);
 
   int findIndex(int);
 
   std::string forecast(int);
   float temperature(int);
-  
+
 };
 
