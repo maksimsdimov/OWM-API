@@ -1,5 +1,12 @@
 #include <vector>
 #include <string>
+#include <utility>
+
+
+struct weather{
+  int temperature;
+  std::string forecast;
+};
 
 class database {
 private:
@@ -8,8 +15,8 @@ private:
     std::string city, country;
     float lon, lat;
     int lastUpdate = 0;
-    float temperature = 0.0; //fix this!
-    std::string forecast;
+    int temperature = 0;
+    std::string forecast = "orig";
   };   
 
   std::vector<city_T> arr;
@@ -23,20 +30,18 @@ private:
   void importDB();
   void exportDB();
 
+  void update(int, int);
 
-  void _print(int); //remove
+  weather fetchWeather(int);
+
+  void updateExternal(int, int, std::string);
+  void updateInternal(int, int, std::string, int);
 
 public:
 
-  void print(int); //remove
-
   database();
 
-  void updateEntry(int, float, std::string, int);
-  void updateExternal(int, float, std::string);
-  void updateInternal(int, float, std::string, int);
-
-  float fetchWeather(int, std::string);
+  void update(int);
 
   int lastUpdate(int);
 
@@ -46,7 +51,9 @@ public:
   int findIndex(int);
 
   std::string forecast(int);
-  float temperature(int);
+  int temperature(int);
 
 };
+
+extern database cache;
 

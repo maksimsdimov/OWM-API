@@ -1,6 +1,5 @@
-#include "database.h"
 #include "apiKey.h"
-
+#include "database.h"
 #include "global.h"
 
 #include "pistache/endpoint.h"
@@ -10,6 +9,7 @@ using namespace std;
 using namespace Pistache;
 
 
+//TODO extract this to server class
 void idHandler(const Pistache::Rest::Request &request,
                      Pistache::Http::ResponseWriter response) {
   int ID = request.param(":id").as<int>();
@@ -24,16 +24,13 @@ void idHandler(const Pistache::Rest::Request &request,
 
     if(getTime() > cache.lastUpdate(index) + 600) {
       std::clog << "Cached data is old\n";
-      cache.updateEntry(ID
-              ,cache.fetchWeather(ID, key.get())
-              , ""
-              , getTime());
+      cache.update(ID);
     }
     responseString += "Forecast: "
                     + cache.forecast(index)
-                    + " , with a temperature of "
+                    + ", with a temperature of "
                     + std::to_string(cache.temperature(index))
-                    + "\n";
+                    + "°C\n";
     code = Http::Code::Ok;
 
   } else {
@@ -64,10 +61,7 @@ void nameHandler(const Pistache::Rest::Request &request,
 
     if(getTime() > cache.lastUpdate(index) + 600) {
       std::clog << "Cached data is old\n";
-      cache.updateEntry(ID
-              ,cache.fetchWeather(ID, key.get())
-              , ""
-              , getTime());
+      cache.update(ID);
     }
     responseString += "Forecast: "
                     + cache.forecast(index)
@@ -81,7 +75,6 @@ void nameHandler(const Pistache::Rest::Request &request,
                     + city
                     + "\n";
     code = Http::Code::Not_Found;
-    std::clog << responseString;
   }
 
   response.send(code, responseString, MIME(Text, Plain));
@@ -90,17 +83,21 @@ void nameHandler(const Pistache::Rest::Request &request,
 
 int main() {
 
-  if(!key.exists())
-    return 0;
+  // if(!key.exists())
+  //   return 0;
 
   Pistache::Rest::Router test;
   Pistache::Rest::Routes::Get(test, "/id/:id", 
                               Pistache::Rest::Routes::bind(&idHandler));
   Pistache::Rest::Routes::Get(test, "/city/:city", 
                              Pistache::Rest::Routes::bind(&nameHandler));
+
   Pistache::Address addr(Pistache::Ipv4::any(), Pistache::Port(9080));
+
   auto options = Http::Endpoint::options().threads(1).flags(Tcp::Options::None);
+
   Pistache::Http::Endpoint server(addr);
+
   std::clog << "Starting server\n";
   server.init(options);
   server.setHandler(test.handler());
@@ -110,4 +107,5 @@ int main() {
   // Http::listenAndServe<handler>("*:9080", opts);
 
   return 0;
+
 }

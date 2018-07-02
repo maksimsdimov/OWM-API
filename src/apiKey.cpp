@@ -1,13 +1,17 @@
 #include <iostream>
-#include <string>
+// #include <string>
 #include <fstream>
 
-#include "client.h"
 #include "apiKey.h"
+#include "client.h"
+
+apiKey key;
 
 void apiKey::set(const std::string str) {
   this->key = str;
 }
+
+//TODO write as do while
 apiKey::apiKey() {
   if(this->exists()) {
     std::clog << "Found API key\n";

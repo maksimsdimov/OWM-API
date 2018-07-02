@@ -6,45 +6,17 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
 
+#include "global.h"
 #include "database.h"
 #include "client.h"
+#include "apiKey.h"
 
-void database::_print(int index) {
-  std::cout << this->arr[index].city << ", "
-            << this->arr[index].country << " :\n "
-            << this->arr[index].ID << "\n "
-            << this->arr[index].lat << " - "
-            << this->arr[index].lon << "\n "
-            << "last update: " << this->arr[index].lastUpdate << "\n "
-            << "temperature: " << this->arr[index].temperature << "\n "
-            << "forecast: " << this->arr[index].forecast << "\n";
-}
-
-void database::print(int index) {
-  this->_print(index);
-}
-
-
-database::database() {
-  if(this->exists()) {
-    std::clog << "Found existing DB\n";
-    importDB();
-  } else {
-    std::clog << "No DB found\n";
-    if( downloadCityList() 
-        && extractCityList() 
-        && parseCityList()) {
-      exportDB();
-    }
-  }
-} 
-
+database cache;
 
 bool database::exists() {
   std::fstream weatherDB("weather.db");
   return (bool)weatherDB;
 }
-
 
 bool database::downloadCityList() {
   std::clog << "Downloading";
@@ -70,7 +42,6 @@ bool database::downloadCityList() {
   }
   return 0;
 }
-
 bool database::extractCityList() {
   std::ifstream archive("temp.gz", std::ios_base::binary);
 
@@ -100,7 +71,6 @@ bool database::extractCityList() {
   }
   return 1;
 }
-
 bool database::parseCityList() {
   std::ifstream json("temp.json");
 
@@ -147,7 +117,6 @@ bool database::parseCityList() {
   return 1;
 }
 
-
 void database::importDB() {
   std::ifstream weatherDB("weather.db", std::ios_base::binary);
   
@@ -182,7 +151,7 @@ void database::importDB() {
       temp.lastUpdate = stoi(str);
   
       getline(weatherDB, str, '|');
-      temp.temperature = stof(str);
+      temp.temperature = stoi(str);
 
       getline(weatherDB, str, '\n');
       temp.forecast = str;
@@ -195,7 +164,6 @@ void database::importDB() {
     std::cerr << "Couldn't open DB\n";
   }
 }
-
 void database::exportDB() {
   std::ofstream weatherDB("weather.db", std::ios_base::binary);
 
@@ -221,61 +189,93 @@ void database::exportDB() {
   }
 }
 
-
-void database::updateEntry(int ID, float temperature, std::string forecast, int time) {
-  updateInternal(ID, temperature, forecast, time);
-  updateExternal(ID, temperature, forecast);
+void database::update(int cityID, int time) {
+  std::clog << "Updating data for " << cityID << "\n";
+  weather temp = fetchWeather(cityID);
+  if(temp.forecast == "Error") {
+    return;
+  }
+  updateInternal(cityID, temp.temperature, temp.forecast, time);
+  updateExternal(cityID, temp.temperature, temp.forecast);
+  std::clog << "Update sucessful\n";
 }
 
-//Implement properly
-void database::updateExternal(int ID, float temperature, std::string forecast) {
-  this->exportDB();
-}
-
-void database::updateInternal(int ID, float temperature, std::string forecast, int time) {
-  this->arr[this->findIndex(ID)].temperature = temperature;
-  this->arr[this->findIndex(ID)].lastUpdate = time;
-  
-}
-
-float database::fetchWeather(int cityID, std::string apiKey) {
+weather database::fetchWeather(int cityID) {
   std::string url;
   url += "/data/2.5/weather?id="
       +   std::to_string(cityID)
       +   "&appid="
-      +   apiKey;
-  std::clog << "Updating";
+      +   key.get();
   httpClient c;
+  std::clog << "Fetching weather data\n";
   auto response = c.get("api.openweathermap.org"
                         , url
                         , '{');
 
   if(response.code == 200) {
-
+    int temperature;
     std::size_t _min = response.body.find("temp_min");
     std::size_t _max = response.body.find("temp_max");
 
     if(_min != std::string::npos && _max != std::string::npos) {
       std::string temp_min(response.body.substr(_min + 10, 6));
       std::string temp_max(response.body.substr(_max + 10, 6));
-      std::clog << "\rUpdate sucessful\n";
-      return (((std::stof(temp_min) + std::stof(temp_max)) / 2 ) - 273.15);
+      temperature = ((std::stof(temp_min) + std::stof(temp_max)) / 2 ) - 273.15;
     } else {
       std::cerr << "Temperatures not found in weather update\n";
     }
+  
+    std::string forecast = "default";
+    std::size_t _forecastStart = response.body.find("description");
+    std::size_t _forecastEnd = response.body.find(",", _forecastStart);
+    std::size_t len = _forecastEnd - _forecastStart - 15;
+    if(_forecastStart != std::string::npos) {
+      forecast = response.body.substr(_forecastStart + 14, len);
+    } else {
+      std::cerr << "Forecast not found in weather update\n";
+    }
+    return weather {temperature, forecast}; 
 
   } else if(response.code == 420) {
     std::cerr << "Unidentified error\n";
   } else {
     std::cerr << "Recieved error " << response.code << " from server\n";
   }
-  return 0;
+  return weather {0, "Error"};
+}
+
+//TODO Implement properly
+void database::updateExternal(int cityID, int temperature, std::string forecast) {
+  this->exportDB();
+}
+
+void database::updateInternal(int cityID, int temperature, std::string forecast, int time) {
+  this->arr[this->findIndex(cityID)].lastUpdate = time;
+  this->arr[this->findIndex(cityID)].temperature = temperature;
+  this->arr[this->findIndex(cityID)].forecast = forecast;
+}
+
+database::database() {
+  if(this->exists()) {
+    std::clog << "Found existing DB\n";
+    importDB();
+  } else {
+    std::clog << "No DB found\n";
+    if( downloadCityList() 
+        && extractCityList() 
+        && parseCityList()) {
+      exportDB();
+    }
+  }
+} 
+
+void database::update(int cityID) {
+  this->update(cityID, getTime());
 }
 
 int database::lastUpdate(int index) {
   return this->arr[index].lastUpdate;
 }
-
 
 int database::findID(std::string cityName) {
   for(size_t i = 0; i < this->arr.size(); i++) {
@@ -288,16 +288,10 @@ int database::findID(std::string cityName) {
   return 0;
 }
 
-// int database::findID(std::string cityName, std::string country) {
-//   //TODO
-//   return -1;
-// }
-
-
-//add size check!!!
-int database::findIndex(int ID) {
+//TODO add size check!!!
+int database::findIndex(int cityID) {
   for(size_t i = 0; i < this->arr.size(); i++) {
-    if(this->arr[i].ID == ID) {
+    if(this->arr[i].ID == cityID) {
       return i;
       break;
     }
@@ -305,11 +299,10 @@ int database::findIndex(int ID) {
   return -1;
 }
 
-
 std::string database::forecast(int index) {
   return this->arr[index].forecast;  
 }
 
-float database::temperature(int index) {
+int database::temperature(int index) {
   return this->arr[index].temperature;
 }

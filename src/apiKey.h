@@ -3,12 +3,14 @@
 class apiKey {
 private:
   std::string key;
-  void set(const std::string);
-public:
-  apiKey();
   bool exists();
+  void set(const std::string);
   bool test(std::string);
   void load();
   void store();
+public:
+  apiKey();
   std::string get();
 };
+
+extern apiKey key;
