@@ -43,6 +43,12 @@ Included is an example website that can be run from the directory.
 cd example-website/
 node index.js
 ```
+
+You may need to install body-parser, ejs and express. If you do, just use 
+```bash
+npm install --save
+```
+
 The server defaults to port 3000, and provides a simple interface to the API.
 Writing in the text field and submiting the form triggers a POST with the entered data to the webserver, which then performs 
 an appropriate GET to the API, meaning you can enter either the name or cityID in the field. From there the API processes the
