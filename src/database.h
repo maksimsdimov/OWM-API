@@ -2,56 +2,57 @@
 #include <string>
 #include <utility>
 
+using namespace std;
 
 struct weather{
   int temperature;
-  std::string forecast;
+  string forecast;
 };
 
 class database {
 private:
   struct city_T {
     int ID;
-    std::string city, country;
+    string city, country;
     float lon, lat;
     int lastUpdate = 0;
     int temperature = 0;
-    std::string forecast = "orig";
+    string forecast = "";
   };   
 
-  std::vector<city_T> arr;
+  vector<city_T> arr;
 
-  bool exists();
+  bool exists() const;
 
-  bool downloadCityList();
-  bool extractCityList();
+  bool downloadCityList() const;
+  bool extractCityList() const;
   bool parseCityList();
 
   void importDB();
-  void exportDB();
+  void exportDB() const;
 
-  void update(int, int);
+  bool update(int, int);
 
-  weather fetchWeather(int);
+  weather fetchWeather(int) const;
 
-  void updateExternal(int, int, std::string);
-  void updateInternal(int, int, std::string, int);
+  void updateInternal(int, int, string, int);
+  bool updateExternal(int, int, string) const;
 
 public:
 
   database();
 
-  void update(int);
+  bool update(int);
 
-  int lastUpdate(int);
+  int lastUpdate(int) const;
 
-  int findID(std::string);
-  // int findID(std::string, std::string);
+  int findID(string) const;
+  // int findID(string, string);
 
-  int findIndex(int);
+  int findIndex(int) const;
 
-  std::string forecast(int);
-  int temperature(int);
+  string forecast(int) const;
+  int temperature(int) const;
 
 };
 

@@ -13,7 +13,7 @@ httpClient::response_T httpClient::get(const std::string host, const std::string
          << "\r\nConnection: close\r\n\r\n";
   stream.flush();
   if(!stream) {
-    std::cerr << stream.error().message();
+    std::cerr << "\n" << stream.error().message() << "\n";
     return response_T {420};
   } else {
     std::stringstream response;
@@ -26,7 +26,7 @@ httpClient::response_T httpClient::get(const std::string host, const std::string
 
     std::string _responseCode;
     getline(header.ignore(10, ' '), _responseCode, ' ');
-    int responseCode = std::stoi(_responseCode);
+    const int responseCode = std::stoi(_responseCode);
 
     int temp = response.tellg();
     std::string body(&delim);

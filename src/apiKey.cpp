@@ -1,5 +1,4 @@
 #include <iostream>
-// #include <string>
 #include <fstream>
 
 #include "apiKey.h"
@@ -10,30 +9,11 @@ apiKey key;
 void apiKey::set(const std::string str) {
   this->key = str;
 }
-
-//TODO write as do while
-apiKey::apiKey() {
-  if(this->exists()) {
-    std::clog << "Found API key\n";
-    load();
-  } else {
-    std::clog << "No API key found.\n"
-              << "Visit https://openweathermap.org/appid to find out how to get one.\n"
-              << "Please enter API key: ";
-    std::string temp;
-    std::cin >> temp;
-    std::clog << "Verifying\n";
-    if(test(temp)) {
-      this->set(temp);
-      store();
-    }
-  }
-}
-bool apiKey::exists() {
+bool apiKey::exists() const {
   std::fstream weatherDB(".keystore");
   return (bool)weatherDB;
 }
-bool apiKey::test(std::string str) {
+bool apiKey::test(std::string str) const {
   std::string url;
   url += "/data/2.5/weather?id="
       +   std::to_string(53654)
@@ -69,7 +49,7 @@ void apiKey::load() {
     std::cerr << "Couldn't load key file\n";
   }
 }
-void apiKey::store() {
+void apiKey::store() const {
   std::ofstream keystore(".keystore", std::ios_base::binary);
   if(keystore) {
     keystore << this->get() << '\x1f';
@@ -78,6 +58,26 @@ void apiKey::store() {
     std::cerr << "Couldn't load key file\n";
   }
 }
-std::string apiKey::get() {
+
+apiKey::apiKey() {
+  if(this->exists()) {
+    std::clog << "Found API key\n";
+    load();
+  } else {
+      std::clog << "No API key found.\n"
+                << "Visit https://openweathermap.org/appid to find out how to get one.\n";
+    while(!this->exists()) {
+      std::clog << "Please enter API key: ";
+      std::string temp;
+      std::cin >> temp;
+      std::clog << "Verifying\n";
+      if(test(temp)) {
+        this->set(temp);
+        store();
+      }
+    }
+  }
+}
+std::string apiKey::get() const {
   return this->key;
 }
