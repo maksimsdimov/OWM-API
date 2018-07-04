@@ -96,7 +96,7 @@ int main() {
 
   Pistache::Address addr(Pistache::Ipv4::any(), Pistache::Port(9080));
 
-  auto options = Http::Endpoint::options().threads(1).flags(Tcp::Options::None);
+  auto options = Http::Endpoint::options().threads(1).flags(Tcp::Options::InstallSignalHandler);
 
   Pistache::Http::Endpoint server(addr);
 
