@@ -37,8 +37,11 @@ If the request is valid, the API will respond with a plain text string in the fo
 
 `Forecast: {forecast}, with a temperature of {temperature}`
 
+###### Bad file descriptor
+If you get this error when running the API, it means the program has been stopped but not terminated (C-z), you're going to need to kill all the processes, just run `killall -9 main` and you should be good to go.
+
 #### example-website
-Included is an example website that can be run from the directory.
+Included is an example website that can be run from the directory, assuming you have Node.js
 ```bash
 cd example-website/
 node index.js
