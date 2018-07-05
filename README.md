@@ -1,5 +1,5 @@
 #### OWM-API
-A simple REST API for [OpenWeatherMap](https://openweathermap.org/) written in C++, utlising [Pistache](https://github.com/oktal/pistache) 
+A simple REST API for [OpenWeatherMap](https://openweathermap.org/) written in C++, utilising [Pistache](https://github.com/oktal/pistache) 
 and the [boost](https://www.boost.org/) library
 
 #### Requirements
